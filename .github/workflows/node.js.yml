@@ -45,6 +45,9 @@ jobs:
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
           npm test
 
+      - name: Install vsce
+        run: npm install -g @vscode/vsce
+
       - name: Build extension package
         run: npm run package
 
