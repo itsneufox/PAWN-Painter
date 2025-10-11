@@ -175,12 +175,10 @@ jobs:
             ${{ needs.build-extension.outputs.is_prerelease == 'true' && '--prerelease' || '' }} \
             "./pawn-painter.vsix#pawn-painter-${{ needs.build-extension.outputs.build_version }}.vsix"
       
-      # Uncomment below to auto-publish to VS Code Marketplace
-      # Requires VSCODE_MARKETPLACE_TOKEN secret in repository settings
-      # - name: Publish to VS Code Marketplace
-      #   if: needs.build-extension.outputs.is_prerelease == 'false'
-      #   uses: HaaLeo/publish-vscode-extension@v1
-      #   with:
-      #     pat: ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
-      #     registryUrl: https://marketplace.visualstudio.com
-      #     extensionFile: ./pawn-painter.vsix
+      - name: Publish to VS Code Marketplace
+        if: needs.build-extension.outputs.is_prerelease == 'false'
+        uses: HaaLeo/publish-vscode-extension@v1
+        with:
+          pat: ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
+          registryUrl: https://marketplace.visualstudio.com
+          extensionFile: ./pawn-painter.vsix

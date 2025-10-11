@@ -1,0 +1,128 @@
+{
+  "commands": {
+    "convertToHexWithAlpha": "Convert to 0xRRGGBBAA",
+    "convertToHexNoAlpha": "Convert to 0xRRGGBB", 
+    "convertToBraced": "Convert to {RRGGBB}",
+    "convertToRGB": "Convert to RGB",
+    "toggleHexColorHighlight": "Toggle Hex Colour Highlighting",
+    "toggleGameTextColorPicker": "Toggle GameText Colour Preview",
+    "toggleNormalColorPicker": "Toggle Normal Colour Picker",
+    "ignoreLine": "Ignore Colour On Selected Line(s)",
+    "unignoreLine": "Restore Colour To Selected Line(s)",
+    "clearIgnoredLines": "Clear All Ignored Lines",
+    "showIgnoredLines": "Show Ignored Lines History",
+    "ignoreFile": "Ignore All Colors In This File",
+    "unignoreFile": "Restore All Colors In This File",
+    "resetGuideState": "Reset Guide State (Show Guide on Next Restart)",
+    "refreshDecorations": "Force Refresh Colors"
+  },
+  "messages": {
+    "lineIgnored": "Line {0} colours will be ignored",
+    "lineRestored": "Line {0} colours restored",
+    "lineNotIgnored": "Line {0} was not ignored",
+    "linesIgnored": "{0} line(s) will have colours ignored",
+    "linesRestored": "{0} line(s) colours restored",
+    "fileIgnored": "Ignored all colours in this file ({0} lines)",
+    "fileAlreadyIgnored": "All lines in this file were already ignored",
+    "fileRestored": "Restored all colours in this file ({0} lines)",
+    "noIgnoredLinesInFile": "No ignored lines found in this file",
+    "ignoredLinesCleared": "Cleared {0} ignored lines",
+    "noIgnoredLines": "No ignored lines found",
+    "noActiveEditor": "No active editor",
+    "selectColorToConvert": "Please select a colour to convert",
+    "invalidColorFormat": "\"{0}\" is not a valid colour format",
+    "colorConverted": "Converted \"{0}\" to {1}",
+    "hexHighlightEnabled": "Hex color highlighting enabled",
+    "hexHighlightDisabled": "Hex color highlighting disabled",
+    "gameTextEnabled": "GameText color preview enabled",
+    "gameTextDisabled": "GameText color preview disabled",
+    "colorPickerEnabled": "Color picker enabled",
+    "colorPickerDisabled": "Color picker disabled",
+    "guideStateReset": "Guide state reset. Guide will show on next restart.",
+    "colorsRefreshed": "Colors refreshed!",
+    "textDecorationsRefreshed": "Text decorations refreshed!",
+    "performanceWarning": "This file contains {0} colors which may hit VS Code's 500 decorator limit. Consider enabling Low Performance Mode in PAWN Painter settings for better performance.",
+    "colorLimitExceeded": "This file contains {0} colors, but only showing {1} due to the current limit. {2} colors are hidden. You can increase the limit in PAWN Painter settings.",
+    "highPerformanceWarning": "PAWN Painter: Showing {0} color decorators. High limits may impact VS Code performance. This warning shows only once per limit setting.",
+    "settingsUpdatedHigh": "PAWN Painter: Updated VS Code's color decorator limit to {0}. High limits may impact performance. VS Code restart may be required for full effect.",
+    "settingsUpdatedNormal": "PAWN Painter: Updated VS Code's color decorator limit to {0}. VS Code restart may be required for full effect.",
+    "settingsUpdateFailed": "PAWN Painter: Failed to update VS Code color decorator limit. You may need to manually set editor.colorDecoratorsLimit in VS Code settings.",
+    "autoOptimizationSuggestion": "Large file detected ({0} colors). PAWN Painter has automatically optimized color display for better performance.",
+    "chunkingNotification": "This file has {0} items. VS Code limits decorations to 500, so PAWN Painter is showing the first 500 items. Right-click to refresh and see more items.",
+    "lowPerformanceModeEnabled": "Low Performance Mode enabled for this workspace. Large files will show fewer decorations for better performance.",
+    "allColorsVisible": "This file has all colors visible already.",
+    "allTextDecorationsVisible": "This file has all text decorations visible already.",
+    "noTextDecorations": "No text decorations found in this file.",
+    "colorChunkRefreshed": "Refreshed colors: chunk {0}/{1} ({2}-{3} of {4})",
+    "textChunkRefreshed": "Refreshed text: chunk {0}/{1} ({2}-{3} of {4})"
+  },
+  "warnings": {
+    "invisibleColor": " ⚠️ contains invisible colour",
+    "unevenTildes": " ⚠️ Uneven tildes may crash players"
+  },
+  "configuration": {
+    "disable": {
+      "description": "Disables the extension completely"
+    },
+    "lowPerformanceMode": {
+      "description": "Enable low performance mode - shows only color picker squares and disables all text coloring. Use this for large files with many colors to bypass VS Code's 500 color decorator limit."
+    },
+    "autoPerformanceMode": {
+      "description": "Automatically suggest low performance mode when files have many colors that may hit VS Code's decorator limit"
+    },
+    "general": {
+      "enableColorPicker": {
+        "description": "Enable the VS Code colour picker for all supported colour formats"
+      }
+    },
+    "gameText": {
+      "textEnabled": {
+        "description": "GameText: Enable highlighting for text following GameText colour codes (~r~, ~g~, etc)"
+      },
+      "textStyle": {
+        "description": "GameText: Choose how text following GameText colours should be displayed"
+      }
+    },
+    "inlineText": {
+      "textEnabled": {
+        "description": "Inline Text: Enable highlighting for text following inline colour codes ({RRGGBB})"
+      },
+      "textStyle": {
+        "description": "Inline Text: Choose how text following inline colour codes should be displayed"
+      }
+    },
+    "hexParameter": {
+      "textEnabled": {
+        "description": "Hex Parameters: Enable coloring for string literals following hex color parameters in function calls"
+      },
+      "textStyle": {
+        "description": "Hex Parameters: Choose how text following hex color parameters should be displayed"
+      }
+    },
+    "hex": {
+      "showAlphaWarnings": {
+        "description": "Alpha Warnings: Show warnings for colours with alpha value of 00"
+      }
+    },
+    "alphaWarnings": {
+      "highlightCode": {
+        "description": "Alpha Warnings: Highlight the colour code itself"
+      },
+      "highlightStyle": {
+        "description": "Alpha Warnings: Choose how the colour code should be highlighted"
+      }
+    }
+  },
+  "actions": {
+    "enableLowPerformanceMode": "Enable Low Performance Mode",
+    "gotIt": "Got it"
+  },
+  "menus": {
+    "convertColorTo": "Convert Color To",
+    "ignoreRestoreColors": "Ignore/Restore Colors",
+    "ignoreSelectedLines": "Ignore Selected Lines",
+    "restoreSelectedLines": "Restore Selected Lines", 
+    "ignoreAllColorsInFile": "Ignore All Colors In This File",
+    "restoreAllColorsInFile": "Restore All Colors In This File"
+  }
+}

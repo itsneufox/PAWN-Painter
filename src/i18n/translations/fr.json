@@ -1,0 +1,123 @@
+{
+  "commands": {
+    "convertToHexWithAlpha": "Convertir en 0xRRGGBBAA",
+    "convertToHexNoAlpha": "Convertir en 0xRRGGBB",
+    "convertToBraced": "Convertir en {RRGGBB}",
+    "convertToRGB": "Convertir en RGB",
+    "toggleHexColorHighlight": "Basculer la Surbrillance de Couleur Hexadécimale",
+    "toggleGameTextColorPicker": "Basculer l'Aperçu de Couleur GameText",
+    "toggleNormalColorPicker": "Basculer le Sélecteur de Couleur Normal",
+    "ignoreLine": "Ignorer la Couleur sur la/les Ligne(s) Sélectionnée(s)",
+    "unignoreLine": "Restaurer la Couleur sur la/les Ligne(s) Sélectionnée(s)",
+    "clearIgnoredLines": "Effacer Toutes les Lignes Ignorées",
+    "showIgnoredLines": "Afficher l'Historique des Lignes Ignorées",
+    "ignoreFile": "Ignorer Toutes les Couleurs dans Ce Fichier",
+    "unignoreFile": "Restaurer Toutes les Couleurs dans Ce Fichier",
+    "resetGuideState": "Réinitialiser l'État du Guide (Afficher le Guide au Prochain Redémarrage)",
+    "refreshDecorations": "Forcer l'Actualisation des Couleurs"
+  },
+  "messages": {
+    "lineIgnored": "Les couleurs de la ligne {0} seront ignorées",
+    "lineRestored": "Les couleurs de la ligne {0} ont été restaurées",
+    "lineNotIgnored": "La ligne {0} n'était pas ignorée",
+    "linesIgnored": "{0} ligne(s) auront leurs couleurs ignorées",
+    "linesRestored": "{0} ligne(s) ont leurs couleurs restaurées",
+    "fileIgnored": "Toutes les couleurs de ce fichier ont été ignorées ({0} lignes)",
+    "fileAlreadyIgnored": "Toutes les lignes de ce fichier étaient déjà ignorées",
+    "fileRestored": "Toutes les couleurs de ce fichier ont été restaurées ({0} lignes)",
+    "noIgnoredLinesInFile": "Aucune ligne ignorée trouvée dans ce fichier",
+    "ignoredLinesCleared": "{0} lignes ignorées effacées",
+    "noIgnoredLines": "Aucune ligne ignorée trouvée",
+    "noActiveEditor": "Aucun éditeur actif",
+    "selectColorToConvert": "Veuillez sélectionner une couleur à convertir",
+    "invalidColorFormat": "\"{0}\" n'est pas un format de couleur valide",
+    "colorConverted": "\"{0}\" converti en {1}",
+    "hexHighlightEnabled": "Surbrillance de couleur hexadécimale activée",
+    "hexHighlightDisabled": "Surbrillance de couleur hexadécimale désactivée",
+    "gameTextEnabled": "Aperçu de couleur GameText activé",
+    "gameTextDisabled": "Aperçu de couleur GameText désactivé",
+    "colorPickerEnabled": "Sélecteur de couleur activé",
+    "colorPickerDisabled": "Sélecteur de couleur désactivé",
+    "guideStateReset": "État du guide réinitialisé. Le guide s'affichera au prochain redémarrage.",
+    "colorsRefreshed": "Couleurs actualisées !",
+    "textDecorationsRefreshed": "Décorations de texte actualisées !",
+    "colorLimitExceeded": "Ce fichier contient {0} couleurs, mais n'en affiche que {1} en raison de la limite actuelle. {2} couleurs sont cachées. Vous pouvez augmenter la limite dans les paramètres PAWN Painter.",
+    "highPerformanceWarning": "PAWN Painter : Affichage de {0} décorateurs de couleur. Les limites élevées peuvent impacter les performances de VS Code. Cet avertissement ne s'affiche qu'une fois par paramètre de limite.",
+    "settingsUpdatedHigh": "PAWN Painter : Limite de décorateur de couleur de VS Code mise à jour à {0}. Les limites élevées peuvent impacter les performances. Un redémarrage de VS Code peut être nécessaire pour un effet complet.",
+    "settingsUpdatedNormal": "PAWN Painter : Limite de décorateur de couleur de VS Code mise à jour à {0}. Un redémarrage de VS Code peut être nécessaire pour un effet complet.",
+    "settingsUpdateFailed": "PAWN Painter : Échec de la mise à jour de la limite de décorateur de couleur de VS Code. Vous devrez peut-être configurer manuellement editor.colorDecoratorsLimit dans les paramètres de VS Code.",
+    "performanceWarning": "Ce fichier contient {0} couleurs qui peuvent atteindre la limite de 500 décorateurs de VS Code. Considérez activer le Mode Basse Performance dans les paramètres PAWN Painter pour de meilleures performances.",
+    "autoOptimizationSuggestion": "Gros fichier détecté ({0} couleurs). PAWN Painter a automatiquement optimisé l'affichage des couleurs pour de meilleures performances.",
+    "chunkingNotification": "Ce fichier a {0} éléments. VS Code limite les décorations à 500, donc PAWN Painter affiche les 500 premiers éléments. Cliquez droit pour actualiser et voir plus d'éléments.",
+    "allColorsVisible": "Ce fichier a déjà toutes les couleurs visibles.",
+    "allTextDecorationsVisible": "Ce fichier a déjà toutes les décorations de texte visibles.",
+    "noTextDecorations": "Aucune décoration de texte trouvée dans ce fichier.",
+    "colorChunkRefreshed": "Couleurs actualisées : segment {0}/{1} ({2}-{3} sur {4})",
+    "textChunkRefreshed": "Texte actualisé : segment {0}/{1} ({2}-{3} sur {4})"
+  },
+  "warnings": {
+    "invisibleColor": " ⚠️ contient une couleur invisible",
+    "unevenTildes": " ⚠️ Les tildes impairs peuvent faire crasher les joueurs"
+  },
+  "configuration": {
+    "disable": {
+      "description": "Désactive complètement l'extension"
+    },
+    "lowPerformanceMode": {
+      "description": "Active le mode basse performance - affiche uniquement les carrés du sélecteur de couleur et désactive toute coloration de texte. Utilisez ceci pour les gros fichiers avec beaucoup de couleurs pour contourner la limite de 500 décorateurs de couleur de VS Code."
+    },
+    "autoPerformanceMode": {
+      "description": "Suggère automatiquement le mode basse performance quand les fichiers ont beaucoup de couleurs qui peuvent atteindre la limite de décorateurs de VS Code"
+    },
+    "general": {
+      "enableColorPicker": {
+        "description": "Activer le sélecteur de couleur VS Code"
+      }
+    },
+    "gameText": {
+      "textEnabled": {
+        "description": "Activer la surbrillance GameText"
+      },
+      "textStyle": {
+        "description": "Style d'affichage GameText"
+      }
+    },
+    "inlineText": {
+      "textEnabled": {
+        "description": "Activer la surbrillance de texte en ligne"
+      },
+      "textStyle": {
+        "description": "Style d'affichage de texte en ligne"
+      }
+    },
+    "hexParameter": {
+      "textEnabled": {
+        "description": "Activer la coloration des paramètres hexadécimaux"
+      },
+      "textStyle": {
+        "description": "Style d'affichage des paramètres hexadécimaux"
+      }
+    },
+    "hex": {
+      "showAlphaWarnings": {
+        "description": "Afficher les avertissements alpha"
+      }
+    },
+    "alphaWarnings": {
+      "highlightCode": {
+        "description": "Surligner le code de couleur"
+      },
+      "highlightStyle": {
+        "description": "Style d'avertissement alpha"
+      }
+    }
+  },
+  "menus": {
+    "convertColorTo": "Convertir la Couleur En",
+    "ignoreRestoreColors": "Ignorer/Restaurer les Couleurs",
+    "ignoreSelectedLines": "Ignorer les Lignes Sélectionnées",
+    "restoreSelectedLines": "Restaurer les Lignes Sélectionnées",
+    "ignoreAllColorsInFile": "Ignorer Toutes les Couleurs dans Ce Fichier",
+    "restoreAllColorsInFile": "Restaurer Toutes les Couleurs dans Ce Fichier"
+  }
+}

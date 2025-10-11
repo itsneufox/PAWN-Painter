@@ -1,245 +1,348 @@
 {
   "name": "pawn-painter",
   "displayName": "PAWN Painter",
-  "version": "2.1.5",
-  "description": "Colour picker for open.mp and SA-MP",
-  "publisher": "itsneufox",
+  "description": "Advanced color visualization for PAWN/SA-MP/open.mp development",
   "icon": "images/icon.png",
-  "galleryBanner": {
-    "color": "#C80000",
-    "theme": "dark"
-  },
+  "version": "3.0.0",
+  "publisher": "itsneufox",
+  "keywords": [
+    "pawn",
+    "color",
+    "colour",
+    "picker",
+    "translator",
+    "samp",
+    "sa-mp",
+    "open.mp",
+    "omp",
+    "gametext",
+    "highlighting",
+    "vscode",
+    "extension"
+  ],
   "author": {
+    "email": "ajuda@tntsamp.com",
     "name": "itsneufox"
   },
   "license": "MIT",
   "repository": {
-    "type": "git",
-    "url": "https://github.com/itsneufox/PAWN-Painter-VSC.git"
+    "url": "https://github.com/itsneufox/PAWN-Painter-VSC"
   },
   "bugs": {
     "url": "https://github.com/itsneufox/PAWN-Painter-VSC/issues",
     "email": "ajuda@tntsamp.com"
   },
   "engines": {
-    "vscode": "^1.95.0"
+    "vscode": "^1.74.0"
   },
   "categories": [
     "Other"
   ],
-  "keywords": [
-    "pawn",
-    "color",
-    "colour",
-    "highlighter",
-    "syntax",
-    "open.mp",
-    "omp",
-    "open multiplayer",
-    "openmultiplayer",
-    "samp",
-    "vscode",
-    "language",
-    "sa:mp",
-    "sa-mp"
-  ],
-  "main": "./out/extension.js",
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "compile-ci": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "lint": "eslint \"src/**/*.ts\"",
-    "lint:fix": "eslint \"src/**/*.ts\" --fix",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.ts\"",
-    "fix-all": "npm run format && npm run lint:fix",
-    "package-ci": "npm run lint && npm run compile-ci && npm run vsce-package-ci",
-    "vsce-package-ci": "npm pkg set scripts.vscode:prepublish=\"echo 'Skipping prepublish for CI'\" && npx vsce package --out pawn-painter.vsix && npm pkg set scripts.vscode:prepublish=\"npm run compile\""
-  },
   "activationEvents": [
     "onLanguage:pawn"
   ],
+  "main": "./dist/main.js",
+  "scripts": {
+    "set-env": "export $(cat .env | xargs)",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=dist/main.js --external:vscode --format=cjs --platform=node",
+    "compile": "npm run checks && npm run clean && npm run esbuild-base -- --minify",
+    "compile-no-test": "npm run checks-ci && npm run clean && npm run esbuild-base -- --minify",
+    "esbuild": "npm run esbuild-base -- --sourcemap",
+    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+    "watch": "npm run clean && npm run esbuild-watch",
+    "lint": "eslint src --ext ts",
+    "clean": "rimraf dist",
+    "pretest": "npm run test-compile",
+    "test": "node ./out/test/runTest.js",
+    "test-compile": "npm run clean-test && tsc -p ./tsconfig.json",
+    "clean-test": "rimraf out",
+    "checks": "npm run lint && npm run test",
+    "pre-push": "bash scripts/no-push-main.sh && npm run checks",
+    "package": "vsce package --out pawn-painter.vsix",
+    "package-ci": "vsce package --out pawn-painter.vsix",
+    "checks-ci": "npm run lint",
+    "vscode:prepublish": "npm run compile-no-test",
+    "publish-vsc": "vsce publish",
+    "publish-open": "env-cmd -x ovsx publish -p $OPENVSX_TOKEN",
+    "publish": "npm run publish-vsc && npm run publish-open && npm run package"
+  },
+  "pre-push": [
+    "pre-push"
+  ],
+  "devDependencies": {
+    "@types/chai": "4.3.4",
+    "@types/fs-extra": "11.0.1",
+    "@types/glob": "8.0.0",
+    "@types/mocha": "10.0.1",
+    "@types/node": "16.18.11",
+    "@types/parse-color": "1.0.1",
+    "@types/sinon": "10.0.13",
+    "@types/vscode": "1.74.0",
+    "@typescript-eslint/eslint-plugin": "5.45.0",
+    "@typescript-eslint/parser": "5.45.0",
+    "@vscode/test-electron": "^2.3.8",
+    "chai": "4.3.7",
+    "env-cmd": "10.1.0",
+    "esbuild": "^0.19.4",
+    "eslint": "8.28.0",
+    "fs-extra": "11.1.0",
+    "glob": "8.0.3",
+    "mocha": "10.1.0",
+    "pre-push": "0.1.4",
+    "rimraf": "4.1.2",
+    "sinon": "15.0.1",
+    "typescript": "5.5.3"
+  },
+  "dependencies": {
+    "color-translate": "1.3.0"
+  },
   "contributes": {
+    "languages": [
+      {
+        "id": "pawn",
+        "extensions": [".pwn", ".inc", ".p", ".pawno"],
+        "aliases": ["PAWN", "pawn"]
+      }
+    ],
     "configurationDefaults": {
       "[pawn]": {
         "editor.colorDecorators": true
       }
     },
-    "languages": [
-      {
-        "id": "pawn",
-        "extensions": [
-          ".pwn",
-          ".inc",
-          ".p",
-          ".pawno"
-        ],
-        "aliases": [
-          "PAWN",
-          "pawn"
-        ]
-      }
-    ],
     "commands": [
       {
-        "command": "pawnpainter.toggleHexColorHighlight",
-        "title": "Toggle Hex Colour Highlighting",
+        "command": "pawn-painter.convertToHexWithAlpha",
+        "title": "%command.convertToHexWithAlpha%",
         "category": "PAWN Painter"
       },
       {
-        "command": "pawnpainter.toggleGameTextColorPicker",
-        "title": "Toggle GameText Colour Preview",
+        "command": "pawn-painter.convertToHexNoAlpha",
+        "title": "%command.convertToHexNoAlpha%",
         "category": "PAWN Painter"
       },
       {
-        "command": "pawnpainter.toggleNormalColorPicker",
-        "title": "Toggle Normal Colour Picker",
+        "command": "pawn-painter.convertToBraced",
+        "title": "%command.convertToBraced%",
         "category": "PAWN Painter"
       },
       {
-        "command": "pawnpainter.ignoreLine",
-        "title": "Ignore Colour On Selected Line(s)",
+        "command": "pawn-painter.convertToRGB",
+        "title": "%command.convertToRGB%",
         "category": "PAWN Painter"
       },
       {
-        "command": "pawnpainter.unignoreLine",
-        "title": "Restore Colour To Selected Line(s)",
+        "command": "pawn-painter.toggleHexColorHighlight",
+        "title": "%command.toggleHexColorHighlight%",
         "category": "PAWN Painter"
       },
       {
-        "command": "pawnpainter.clearIgnoredLines",
-        "title": "Clear All Ignored Lines",
+        "command": "pawn-painter.toggleGameTextColorPicker",
+        "title": "%command.toggleGameTextColorPicker%",
         "category": "PAWN Painter"
       },
       {
-        "command": "pawnpainter.showIgnoredLines",
-        "title": "History Of All Ignored Lines",
+        "command": "pawn-painter.toggleNormalColorPicker",
+        "title": "%command.toggleNormalColorPicker%",
         "category": "PAWN Painter"
       },
       {
-        "command": "pawnpainter.resetGuideState",
-        "title": "Reset Guide State (Show Guide on Next Restart)",
+        "command": "pawn-painter.ignoreLine",
+        "title": "%command.ignoreLine%",
+        "category": "PAWN Painter"
+      },
+      {
+        "command": "pawn-painter.unignoreLine",
+        "title": "%command.unignoreLine%",
+        "category": "PAWN Painter"
+      },
+      {
+        "command": "pawn-painter.clearIgnoredLines",
+        "title": "%command.clearIgnoredLines%",
+        "category": "PAWN Painter"
+      },
+      {
+        "command": "pawn-painter.showIgnoredLines",
+        "title": "%command.showIgnoredLines%",
+        "category": "PAWN Painter"
+      },
+      {
+        "command": "pawn-painter.ignoreFile",
+        "title": "%command.ignoreFile%",
+        "category": "PAWN Painter"
+      },
+      {
+        "command": "pawn-painter.unignoreFile",
+        "title": "%command.unignoreFile%",
+        "category": "PAWN Painter"
+      },
+      {
+        "command": "pawn-painter.resetGuideState",
+        "title": "%command.resetGuideState%",
+        "category": "PAWN Painter"
+      },
+      {
+        "command": "pawn-painter.refreshDecorations",
+        "title": "%command.refreshDecorations%",
         "category": "PAWN Painter"
       }
     ],
+      "submenus": [
+        {
+          "id": "pawn-painter.colorConversionMenu",
+          "label": "%menu.convertColorTo%"
+        },
+        {
+          "id": "pawn-painter.ignoreMenu",
+          "label": "%menu.ignoreRestoreColors%"
+        }
+      ],
     "menus": {
       "editor/context": [
         {
-          "command": "pawnpainter.ignoreLine",
-          "group": "pawnpainter",
+          "submenu": "pawn-painter.colorConversionMenu",
+          "group": "pawn-painter",
+          "when": "editorTextFocus && resourceExtname =~ /\\.(pwn|inc|p|pawno)$/ && editorHasSelection"
+        },
+        {
+          "submenu": "pawn-painter.ignoreMenu",
+          "group": "pawn-painter@1",
           "when": "editorTextFocus && resourceExtname =~ /\\.(pwn|inc|p|pawno)$/"
         },
         {
-          "command": "pawnpainter.unignoreLine",
-          "group": "pawnpainter",
+          "command": "pawn-painter.refreshDecorations",
+          "group": "pawn-painter@2",
           "when": "editorTextFocus && resourceExtname =~ /\\.(pwn|inc|p|pawno)$/"
+        }
+      ],
+      "pawn-painter.colorConversionMenu": [
+        {
+          "command": "pawn-painter.convertToHexWithAlpha",
+          "group": "1_hex"
         },
         {
-          "command": "pawnpainter.showIgnoredLines",
-          "group": "pawnpainter",
-          "when": "editorTextFocus && resourceExtname =~ /\\.(pwn|inc|p|pawno)$/"
+          "command": "pawn-painter.convertToHexNoAlpha",
+          "group": "1_hex"
+        },
+        {
+          "command": "pawn-painter.convertToBraced",
+          "group": "2_other"
+        },
+        {
+          "command": "pawn-painter.convertToRGB",
+          "group": "2_other"
+        }
+      ],
+      "pawn-painter.ignoreMenu": [
+        {
+          "command": "pawn-painter.ignoreLine",
+          "title": "%menu.ignoreSelectedLines%",
+          "group": "1_lines"
+        },
+        {
+          "command": "pawn-painter.unignoreLine",
+          "title": "%menu.restoreSelectedLines%",
+          "group": "1_lines"
+        },
+        {
+          "command": "pawn-painter.ignoreFile",
+          "title": "%menu.ignoreAllColorsInFile%",
+          "group": "2_file"
+        },
+        {
+          "command": "pawn-painter.unignoreFile",
+          "title": "%menu.restoreAllColorsInFile%",
+          "group": "2_file"
         }
       ]
     },
     "configuration": {
-      "title": "PAWN Painter",
+      "title": "%config.title%",
       "properties": {
-        "pawnpainter.general.enableColorPicker": {
+        "pawn-painter.disable": {
           "type": "boolean",
-          "default": true,
-          "description": "Enable the VS Code colour picker for all supported colour formats.",
+          "default": false,
+          "description": "%config.disable.description%",
           "order": 1
         },
-        "pawnpainter.hex.enabled": {
+        "pawn-painter.autoPerformanceMode": {
           "type": "boolean",
           "default": true,
-          "description": "Enable highlighting for hexadecimal colour codes (0xRRGGBB, 0xRRGGBBAA).",
+          "description": "%config.autoPerformanceMode.description%",
           "order": 2
         },
-        "pawnpainter.hex.style": {
-          "type": "string",
-          "enum": [
-            "text",
-            "underline",
-            "background"
-          ],
-          "default": "underline",
-          "description": "Choose how hex colour codes should be displayed.",
-          "order": 3
-        },
-        "pawnpainter.hex.showAlphaWarnings": {
+        "pawn-painter.general.enableColorPicker": {
           "type": "boolean",
           "default": true,
-          "description": "Show warnings for colours with alpha value of 00.",
+          "description": "%config.general.enableColorPicker.description%",
           "order": 4
         },
-        "pawnpainter.gameText.enabled": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable colour preview for GameText colour codes (~r~, ~g~, ~b~, etc).",
+        "pawn-painter.performance.colorDecoratorLimit": {
+          "type": "number",
+          "default": 500,
+          "minimum": 100,
+          "maximum": 10000,
+          "description": "%config.performance.colorDecoratorLimit.description%",
           "order": 5
         },
-        "pawnpainter.gameText.style": {
+        "pawn-painter.gameText.textEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.gameText.textEnabled.description%",
+          "order": 11
+        },
+        "pawn-painter.gameText.textStyle": {
           "type": "string",
-          "enum": [
-            "text",
-            "underline",
-            "background"
-          ],
+          "enum": ["text", "underline", "background"],
           "default": "text",
-          "description": "Choose how GameText colours should be displayed.",
-          "order": 6
+          "description": "%config.gameText.textStyle.description%",
+          "order": 12
         },
-        "pawnpainter.inlineText.codeEnabled": {
+        "pawn-painter.inlineText.textEnabled": {
           "type": "boolean",
           "default": true,
-          "description": "Enable highlighting for the inline colour codes ({RRGGBB}).",
-          "order": 7
+          "description": "%config.inlineText.textEnabled.description%",
+          "order": 20
         },
-        "pawnpainter.inlineText.textEnabled": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable highlighting for text following inline colour codes.",
-          "order": 8
-        },
-        "pawnpainter.inlineText.codeStyle": {
+        "pawn-painter.inlineText.textStyle": {
           "type": "string",
-          "enum": [
-            "text",
-            "underline",
-            "background"
-          ],
+          "enum": ["text", "underline", "background"],
+          "default": "text",
+          "description": "%config.inlineText.textStyle.description%",
+          "order": 21
+        },
+        "pawn-painter.hexParameter.textEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.hexParameter.textEnabled.description%",
+          "order": 30
+        },
+        "pawn-painter.hexParameter.textStyle": {
+          "type": "string",
+          "enum": ["text", "underline", "background"],
+          "default": "text",
+          "description": "%config.hexParameter.textStyle.description%",
+          "order": 31
+        },
+        "pawn-painter.hex.showAlphaWarnings": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.hex.showAlphaWarnings.description%",
+          "order": 40
+        },
+        "pawn-painter.alphaWarnings.highlightCode": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.alphaWarnings.highlightCode.description%",
+          "order": 41
+        },
+        "pawn-painter.alphaWarnings.highlightStyle": {
+          "type": "string",
+          "enum": ["text", "underline", "background"],
           "default": "underline",
-          "description": "Choose how the inline colour code itself ({RRGGBB}) should be displayed.",
-          "order": 9
-        },
-        "pawnpainter.inlineText.textStyle": {
-          "type": "string",
-          "enum": [
-            "text",
-            "underline",
-            "background"
-          ],
-          "default": "text",
-          "description": "Choose how text following an inline colour should be displayed.",
-          "order": 10
+          "description": "%config.alphaWarnings.highlightStyle.description%",
+          "order": 42
         }
       }
     }
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.24.0",
-    "@types/node": "^22.8.7",
-    "@types/vscode": "^1.95.0",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "eslint": "^8.57.1",
-    "eslint-config-prettier": "^10.1.2",
-    "eslint-plugin-prettier": "^5.2.6",
-    "globals": "^16.0.0",
-    "prettier": "^3.5.3",
-    "typescript": "^5.6.3",
-    "typescript-eslint": "^8.29.0"
   }
 }

@@ -1,178 +1,203 @@
 import * as vscode from 'vscode';
-import { IgnoredLinesManager } from '../features/ignoredLines/ignoredLinesManager';
-import { FunctionUtils } from '../utils/functionUtils';
-import { ConfigurationLoader } from '../configurations/configLoader';
+import { getMatches, getCustomMatches } from '../getMatches';
+import { isValidDocument } from '../utils/helpers';
+import { IgnoredLinesManager } from '../utils/ignoredLines';
+import { t } from '../i18n';
 
+/**
+ * PAWN color provider that shows colors up to VS Code's configurable decorator limit
+ * Coordinates with text decorations to ensure consistent ranges
+ */
 export class ColorProvider implements vscode.DocumentColorProvider {
-    private functionUtils = new FunctionUtils();
-    private configLoader = ConfigurationLoader.getInstance();
+  private disposables: vscode.Disposable[] = [];
+  private allColors = new Map<string, vscode.ColorInformation[]>();
+  private lastDecoratorLines = new Map<string, number>(); // documentUri -> last line with color decorator
+  private performanceWarningShown = new Set<string>(); // Track which limits have been warned about
+  
+  constructor(private ignoredLinesManager: IgnoredLinesManager) {
+    this.setupEventHandlers();
+  }
 
-    public provideDocumentColors(
-        document: vscode.TextDocument,
-    ): vscode.ProviderResult<vscode.ColorInformation[]> {
-        const config = this.configLoader.getConfig();
+  private setupEventHandlers(): void {
+    // Listen for document changes to clear cache
+    this.disposables.push(
+      vscode.workspace.onDidChangeTextDocument(event => {
+        this.clearDocumentCache(event.document.uri.toString());
+      })
+    );
+  }
 
-        if (!config.general.enableColourPicker) {
-            return [];
-        }
+  private clearDocumentCache(documentUri: string): void {
+    this.allColors.delete(documentUri);
+    this.lastDecoratorLines.delete(documentUri);
+  }
 
-        const colorRanges: vscode.ColorInformation[] = [];
-        const text = document.getText();
-        const manager = IgnoredLinesManager.getInstance();
+  /**
+   * Set the last line number that has a color decorator (for text provider coordination)
+   */
+  private setLastDecoratorLine(documentUri: string, lineNumber: number): void {
+    this.lastDecoratorLines.set(documentUri, lineNumber);
+  }
 
-        // Match hex colors (0xRRGGBB and 0xRRGGBBAA)
-        const hexRegex = /\b0x([0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?)\b/g;
-        let match;
+  /**
+   * Get the last line number that has a color decorator (for text provider coordination)
+   */
+  public getLastDecoratorLine(documentUri: string): number {
+    return this.lastDecoratorLines.get(documentUri) ?? -1;
+  }
 
-        while ((match = hexRegex.exec(text)) !== null) {
-            const startPos = document.positionAt(match.index);
-            const position = startPos;
+  public async provideDocumentColors(document: vscode.TextDocument): Promise<vscode.ColorInformation[]> {
+    try {
+      if (!document || !isValidDocument(document)) {
+        return [];
+      }
 
-            // Skip if line is ignored
-            if (manager && manager.isLineIgnored(document.uri.fsPath, startPos.line)) {
-                continue;
-            }
+      const config = vscode.workspace.getConfiguration('pawn-painter');
+      
+      if (config.get<boolean>('disable', false)) {
+        return [];
+      }
 
-            // Check if we're in a TextDraw function
-            const functionName = this.functionUtils.getFunctionNameAtPosition(document, position);
-            if (functionName?.match(/(?:Player)?TextDraw(?:Colour|Color)/)) {
-                continue; // Skip color picker for TextDraw functions
-            }
+      if (!config.get<boolean>('general.enableColorPicker', true)) {
+        return [];
+      }
 
-            const hex = match[1];
-            const r = parseInt(hex.substring(0, 2), 16) / 255;
-            const g = parseInt(hex.substring(2, 4), 16) / 255;
-            const b = parseInt(hex.substring(4, 6), 16) / 255;
-            const a = hex.length === 8 ? parseInt(hex.substring(6, 8), 16) / 255 : 1;
+      const documentUri = document.uri.toString();
 
-            const range = new vscode.Range(
-                startPos,
-                document.positionAt(match.index + match[0].length),
-            );
+      // Get or compute all colors for the document
+      let allDocumentColors = this.allColors.get(documentUri);
+      if (!allDocumentColors) {
+        allDocumentColors = await this.getAllDocumentColors(document);
+        this.allColors.set(documentUri, allDocumentColors);
+      }
 
-            colorRanges.push(new vscode.ColorInformation(range, new vscode.Color(r, g, b, a)));
-        }
-
-        // Match braced colors ({RRGGBB})
-        const bracedRegex = /\{([0-9A-Fa-f]{6})\}/g;
-        while ((match = bracedRegex.exec(text)) !== null) {
-            const startPos = document.positionAt(match.index);
-
-            // Skip if line is ignored
-            if (manager && manager.isLineIgnored(document.uri.fsPath, startPos.line)) {
-                continue;
-            }
-
-            const hex = match[1];
-            const r = parseInt(hex.substring(0, 2), 16) / 255;
-            const g = parseInt(hex.substring(2, 4), 16) / 255;
-            const b = parseInt(hex.substring(4, 6), 16) / 255;
-
-            const range = new vscode.Range(
-                startPos,
-                document.positionAt(match.index + match[0].length),
-            );
-
-            colorRanges.push(new vscode.ColorInformation(range, new vscode.Color(r, g, b, 1)));
-        }
-
-        // Match RGB/RGBA values
-        const rgbRegex = /(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*(\d{1,3}))?/g;
-        while ((match = rgbRegex.exec(text)) !== null) {
-            const startPos = document.positionAt(match.index);
-            const position = startPos;
-
-            // Skip if line is ignored
-            if (manager && manager.isLineIgnored(document.uri.fsPath, startPos.line)) {
-                continue;
-            }
-
-            // Process RGB values in TextDraw functions
-            const functionName = this.functionUtils.getFunctionNameAtPosition(document, position);
-            if (functionName?.match(/(?:Player)?TextDraw(?:Colour|Color)/)) {
-                const [r, g, b, a] = match;
-                if (parseInt(r) <= 255 && parseInt(g) <= 255 && parseInt(b) <= 255) {
-                    const range = new vscode.Range(
-                        startPos,
-                        document.positionAt(match.index + match[0].length),
-                    );
-
-                    colorRanges.push(
-                        new vscode.ColorInformation(
-                            range,
-                            new vscode.Color(
-                                parseInt(r) / 255,
-                                parseInt(g) / 255,
-                                parseInt(b) / 255,
-                                a ? parseInt(a) / 255 : 1,
-                            ),
-                        ),
-                    );
-                }
-            }
-        }
-
-        return colorRanges;
-    }
-
-    public provideColorPresentations(
-        color: vscode.Color,
-        context: { document: vscode.TextDocument; range: vscode.Range },
-    ): vscode.ProviderResult<vscode.ColorPresentation[]> {
-        const config = this.configLoader.getConfig();
-
-        if (!config.general.enableColourPicker) {
-            return Promise.resolve([]);
-        }
-
-        const manager = IgnoredLinesManager.getInstance();
-
-        // Skip if line is ignored
-        if (
-            manager &&
-            manager.isLineIgnored(context.document.uri.fsPath, context.range.start.line)
-        ) {
-            return [];
-        }
-
-        const originalText = context.document.getText(context.range).trim();
-
-        // Check if we're in a TextDraw function
-        const functionName = this.functionUtils.getFunctionNameAtPosition(
-            context.document,
-            context.range.start,
+      // Get user-defined color decorator limit
+      const decoratorLimit = config.get<number>('performance.colorDecoratorLimit', 500);
+      
+      // Show warning if user has a high limit (only once per limit value)
+      const highLimitWarningKey = `limit_${decoratorLimit}`;
+      if (decoratorLimit > 1000 && allDocumentColors.length > decoratorLimit && !this.performanceWarningShown.has(highLimitWarningKey)) {
+        this.performanceWarningShown.add(highLimitWarningKey);
+        vscode.window.showWarningMessage(
+          t('messages.highPerformanceWarning', decoratorLimit)
         );
+      }
+      
+      // Show warning if document has more colors than the current limit (only once per document+limit combination)
+      const limitExceededWarningKey = `exceeded_${documentUri}_${decoratorLimit}`;
+      if (allDocumentColors.length > decoratorLimit && !this.performanceWarningShown.has(limitExceededWarningKey)) {
+        this.performanceWarningShown.add(limitExceededWarningKey);
+        vscode.window.showWarningMessage(
+          t('messages.colorLimitExceeded', allDocumentColors.length, decoratorLimit, allDocumentColors.length - decoratorLimit)
+        );
+      }
 
-        if (functionName?.match(/(?:Player)?TextDraw(?:Colour|Color)/)) {
-            // For TextDraw functions, return RGB format
-            const r = Math.round(color.red * 255);
-            const g = Math.round(color.green * 255);
-            const b = Math.round(color.blue * 255);
-            return [new vscode.ColorPresentation(`${r}, ${g}, ${b}`)];
-        }
+      // Apply the limit and store info for text provider coordination
+      const limitedColors = allDocumentColors.slice(0, decoratorLimit);
+      
+      // Store the last decorator line for text provider coordination
+      if (limitedColors.length > 0) {
+        const lastColorLine = limitedColors[limitedColors.length - 1].range.start.line;
+        this.setLastDecoratorLine(documentUri, lastColorLine);
+      } else {
+        this.setLastDecoratorLine(documentUri, -1);
+      }
 
-        // For other contexts, handle hex formats
-        const r = Math.round(color.red * 255);
-        const g = Math.round(color.green * 255);
-        const b = Math.round(color.blue * 255);
-        const hex = [r, g, b]
-            .map((n) => n.toString(16).padStart(2, '0'))
-            .join('')
-            .toUpperCase();
-
-        if (originalText.startsWith('{')) {
-            return [new vscode.ColorPresentation(`{${hex}}`)];
-        }
-
-        // Check if original had alpha
-        if (originalText.length === 10) {
-            // 0xRRGGBBAA format
-            const a = Math.round(color.alpha * 255);
-            const hexWithAlpha = hex + a.toString(16).padStart(2, '0').toUpperCase();
-            return [new vscode.ColorPresentation(`0x${hexWithAlpha}`)];
-        }
-
-        // Default to 0xRRGGBB format
-        return [new vscode.ColorPresentation(`0x${hex}`)];
+      return this.filterIgnoredColors(limitedColors, document);
+      
+    } catch (error) {
+      // If any error occurs, return empty array to prevent crashes
+      return [];
     }
+  }
+
+  private async getAllDocumentColors(document: vscode.TextDocument): Promise<vscode.ColorInformation[]> {
+    const text = document.getText();
+    
+    const matches = [
+      ...(await getMatches(text)),
+      ...getCustomMatches(text, document.languageId),
+    ];
+
+    return matches;
+  }
+
+  private filterIgnoredColors(
+    colors: vscode.ColorInformation[], 
+    document: vscode.TextDocument
+  ): vscode.ColorInformation[] {
+    if (!this.ignoredLinesManager) {
+      return colors;
+    }
+
+    return colors.filter(color => {
+      const line = color.range.start.line;
+      return !this.ignoredLinesManager.isLineIgnored(document, line);
+    });
+  }
+
+  /**
+   * Refresh colors by clearing cache
+   */
+  public async refreshColors(): Promise<void> {
+    const activeEditor = vscode.window.activeTextEditor;
+    if (!activeEditor || !activeEditor.document) return;
+    
+    const documentUri = activeEditor.document.uri.toString();
+    this.clearDocumentCache(documentUri);
+    
+    vscode.window.showInformationMessage(t('messages.colorsRefreshed'));
+  }
+
+  public provideColorPresentations(
+    color: vscode.Color, 
+    context: { document: vscode.TextDocument; range: vscode.Range }
+  ): vscode.ProviderResult<vscode.ColorPresentation[]> {
+    const { document } = context;
+    
+    if (!isValidDocument(document)) {
+      return [];
+    }
+    
+    const config = vscode.workspace.getConfiguration('pawn-painter');
+    if (!config.get<boolean>('general.enableColorPicker', true)) {
+      return [];
+    }
+
+    // Import here to avoid circular dependencies
+    const { PawnColorTranslator } = require('../colorTranslatorExtended');
+    
+    const { red: r, green: g, blue: b, alpha } = color;
+    const pawnColor = new PawnColorTranslator({
+      r: r * 255,
+      g: g * 255,
+      b: b * 255,
+      alpha,
+    });
+
+    const representations = [
+      pawnColor.pawnHex,
+      pawnColor.pawnHexNoAlpha,
+      pawnColor.pawnBraced,
+      pawnColor.pawnDecimal,
+      pawnColor.pawnRgb,
+    ];
+
+    return representations.map(
+      (representation) => new vscode.ColorPresentation(representation)
+    );
+  }
+
+  public clearCache(): void {
+    this.allColors.clear();
+    this.lastDecoratorLines.clear();
+  }
+
+  public dispose(): void {
+    this.disposables.forEach(d => d.dispose());
+    this.disposables = [];
+    this.allColors.clear();
+    this.lastDecoratorLines.clear();
+    this.performanceWarningShown.clear();
+  }
 }

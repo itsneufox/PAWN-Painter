@@ -1,11 +1,8 @@
-out
-dist
-node_modules
+out/
+dist/
+node_modules/
 .vscode-test/
+.user-data-dir-test/
+.env
+.vscode/settings.json
 *.vsix
-/scripts
-/package-lock.json
-/.vscode-test
-/.vscode
-/snippets
-/test
