@@ -76,6 +76,26 @@ suite("PAWN Color Matches Tests", () => {
     chai.assert.equal(matches.length, 0);
   });
 
+  test("Ignores tag-prefixed hex values", async () => {
+    const testText = "#define FLOAT_INFINITY (Float:0x7F800000)";
+    const matches = await getMatches(testText);
+
+    chai.assert.equal(matches.length, 0);
+  });
+
+  test("Ignores colors inside comments", async () => {
+    const testText = `
+      // line comment 0xFF0000 {00FF00} 255, 0, 0
+      /* block comment with 0x0000FF and {112233} and 1, 2, 3 */
+      new realHex = 0xABCDEF;
+      SendClientMessage(playerid, {123456}, "real braced");
+      SetPlayerColor(playerid, 10, 20, 30);
+    `;
+    const matches = await getMatches(testText);
+
+    chai.assert.equal(matches.length, 3);
+  });
+
   test("Matches multiple PAWN color formats in mixed content", async () => {
     const testText = `
       #define COLOR_RED 0xFF0000FF
@@ -134,5 +154,16 @@ suite("PAWN GameText Color Matches Tests", () => {
     const matches = getGameTextMatches(testText);
     
     chai.assert.equal(matches.length, 0);
+  });
+
+  test("Ignores GameText markers inside comments", () => {
+    const testText = `
+      // ~r~ignored red
+      /* ~g~ignored green */
+      "~b~valid blue"
+    `;
+    const matches = getGameTextMatches(testText);
+
+    chai.assert.equal(matches.length, 1);
   });
 });

@@ -190,16 +190,26 @@ export class GameTextProvider implements vscode.Disposable {
     // Check for GameText crash warnings
     this.checkGameTextWarnings(editor);
     
-    // Create a new regex instance each time to avoid global state issues
-    const gameTextPattern = /~([rgbyplws])~((?:~h~)*)/g;
+    // Parse both color codes and ~h~ so light levels can change mid-segment.
+    const gameTextPattern = /~([rgbyplwsh])~/g;
+    let activeColorChar: string | null = null;
+    let lightLevels = 0;
     
     let match;
     while ((match = gameTextPattern.exec(text)) !== null) {
-      const colorChar = match[1].toLowerCase();
-      const lightPart = match[2] || "";
-      const lightLevels = lightPart ? (lightPart.match(/~h~/g) || []).length : 0;
+      const token = match[1].toLowerCase();
+
+      if (token === "h") {
+        if (!activeColorChar) {
+          continue;
+        }
+        lightLevels++;
+      } else {
+        activeColorChar = token;
+        lightLevels = 0;
+      }
       
-      const color = this.getGameTextColor(colorChar, lightLevels);
+      const color = this.getGameTextColor(activeColorChar, lightLevels);
       if (!color) continue;
 
       // Only color the following text (for consistency with braced colors)
@@ -423,7 +433,7 @@ export class GameTextProvider implements vscode.Disposable {
     const text = editor.document.getText();
     
     // Find the text between this GameText code and the next GameText code, braced color, or delimiter
-    const nextGameTextMatch = text.substring(startIndex).match(/~[rgbyplws]~|\{[0-9a-fA-F]{6}\}|"|;|\n|\r/);
+    const nextGameTextMatch = text.substring(startIndex).match(/~[rgbyplws]~|~h~|\{[0-9a-fA-F]{6}\}|"|;|\n|\r/);
     
     if (!nextGameTextMatch) {
       // No next GameText code found, take text until end of line

@@ -217,6 +217,43 @@ suite("GameText Provider Tests", () => {
       chai.assert.equal(textRange.end.character, expectedEnd);
     }
   });
+
+  test("findGameTextFollowingText excludes ~h~ control code from colored range", () => {
+    provider = new GameTextProvider();
+
+    const testText = `GameTextForPlayer(playerid, "~r~Youtuber~h~!!!", 3000, 1);`;
+    const mockDocument = {
+      getText: () => testText,
+      positionAt: (index: number) => ({ line: 0, character: index }),
+      lineAt: (_line: number) => ({ range: { end: { line: 0, character: testText.length } } })
+    };
+
+    const mockEditor = {
+      document: mockDocument
+    };
+
+    const findGameTextFollowingText = (provider as any).findGameTextFollowingText;
+    const redCodeIndex = testText.indexOf("~r~");
+    const afterRedCodeIndex = redCodeIndex + 3;
+    const hCodeIndex = testText.indexOf("~h~");
+    const afterHCodeIndex = hCodeIndex + 3;
+    const closingQuoteIndex = testText.indexOf('"', afterHCodeIndex);
+
+    const textRange = findGameTextFollowingText(mockEditor, afterRedCodeIndex);
+    const lightTextRange = findGameTextFollowingText(mockEditor, afterHCodeIndex);
+
+    chai.assert.isNotNull(textRange);
+    if (textRange) {
+      chai.assert.equal(textRange.start.character, afterRedCodeIndex);
+      chai.assert.equal(textRange.end.character, hCodeIndex);
+    }
+
+    chai.assert.isNotNull(lightTextRange);
+    if (lightTextRange) {
+      chai.assert.equal(lightTextRange.start.character, afterHCodeIndex);
+      chai.assert.equal(lightTextRange.end.character, closingQuoteIndex);
+    }
+  });
 });
 
 suite('Hex Parameter Edge Cases Tests', () => {
