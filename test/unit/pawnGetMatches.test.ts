@@ -70,6 +70,7 @@ suite("PAWN Color Matches Tests", () => {
       const invalid2 = {12345}; // Wrong length
       const invalid3 = 300, 400, 500; // Out of range
       const invalid4 = 123; // Too short decimal
+      const invalid5 = 0xFF0000AABB; // Too long (10 hex digits)
     `;
     const matches = await getMatches(testText);
     

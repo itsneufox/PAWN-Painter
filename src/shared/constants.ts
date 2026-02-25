@@ -1,5 +1,5 @@
 // PAWN color regexes
-export const pawnHexRegex = /0x([0-9a-fA-F]{6,8})/g;
+export const pawnHexRegex = /0x([0-9a-fA-F]{6,8})(?![0-9a-fA-F])/g;
 export const pawnBracedRegex = /\{([0-9a-fA-F]{6})\}/g;
 // Removed automatic decimal detection - will be handled manually via context menu
 export const pawnRgbRegex = /(\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})/g;

@@ -47,6 +47,12 @@ export class AlphaWarningsManager {
       return;
     }
 
+    // Clear previous decorations before re-applying so stale decorations from a
+    // previously-selected highlight style don't linger when the style changes.
+    this.alphaColourDecorations.forEach(decoration => {
+      editor.setDecorations(decoration, []);
+    });
+
     const text = editor.document.getText();
     const highlightCode = getSetting<boolean>("alphaWarnings.highlightCode") ?? true;
     const highlightStyle = getSetting<string>("alphaWarnings.highlightStyle") || "underline";
